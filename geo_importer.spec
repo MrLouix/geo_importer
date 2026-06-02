@@ -5,11 +5,20 @@ from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 block_cipher = None
 
+# Convert collect_data_files tuples (src, dst) to (src, dst, type) format
+raw_datas = collect_data_files('osgeo')
+datas = [(src, dst, 'DATA') for src, dst in raw_datas]
+# Add icon file
+if 'geo_importer.ico' in [d[0] for d in datas]:
+    pass  # already included
+else:
+    datas.append(('geo_importer.ico', '.', 'DATA'))
+
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=collect_data_files('osgeo') + [('geo_importer.ico', '.', 'DATA')],
+    datas=datas,
     hiddenimports=['osgeo.gdal', 'osgeo.osr', 'osgeo._gdal', 'osgeo._osr'],
     hookspath=[],
     runtime_hooks=[],
