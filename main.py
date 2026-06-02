@@ -280,7 +280,47 @@ class GeoImporterApp:
         return value
 
     def _on_import(self):
-        pass  # placeholder — wired in step 5
+        # 1. Gather inputs
+        source_file = self._source_entry.get()
+        target_folder = self._target_entry.get()
+        url = self._url_entry.get()
+        file_type = self.get_file_type()
+        notes = self._notes_text.get("1.0", "end-1c")
+
+        # 2. Validate completeness
+        ok, msg = validate_fields(source_file, target_folder, url, file_type)
+        if not ok:
+            self._messagebox.showerror("Champ manquant", msg)
+            return
+
+        # 3. Validate URL syntax
+        ok, msg = validate_url(url)
+        if not ok:
+            self._messagebox.showerror("URL invalide", msg)
+            return
+
+        # 4. Copy file
+        try:
+            copied_path = copy_file(source_file, target_folder)
+        except OSError as exc:
+            self._messagebox.showerror("Erreur de copie", str(exc))
+            return
+
+        # 5. Extract metadata and generate readme (rollback on any failure)
+        readme_path = None
+        try:
+            metadata = extract_gdal_metadata(copied_path)
+            readme_path = generate_readme(copied_path, metadata, file_type, url, notes)
+        except Exception as exc:
+            rollback(copied_path, readme_path)
+            self._messagebox.showerror("Erreur GDAL", str(exc))
+            return
+
+        # 6. Report success
+        self._messagebox.showinfo(
+            "Import réussi",
+            "Le fichier a été importé avec succès et ses métadonnées ont été générées.",
+        )
 
 
 def main():
