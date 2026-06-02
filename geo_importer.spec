@@ -9,7 +9,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=collect_data_files('osgeo') + [('geo_importer.ico', '.')],
+    datas=collect_data_files('osgeo') + [('geo_importer.ico', '.', 'DATA')],
     hiddenimports=['osgeo.gdal', 'osgeo.osr', 'osgeo._gdal', 'osgeo._osr'],
     hookspath=[],
     runtime_hooks=[],
