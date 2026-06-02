@@ -30,6 +30,69 @@ def validate_url(url: str) -> tuple:
     return (True, "")
 
 
+def extract_gdal_metadata(file_path: str) -> dict:
+    """Open a raster with GDAL and return a dict of technical metadata."""
+    from osgeo import gdal, osr
+
+    gdal.UseExceptions()
+
+    dataset = gdal.Open(file_path, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise ValueError(f"Impossible d'ouvrir le fichier raster : {file_path}")
+
+    try:
+        # --- Spatial reference system ---
+        wkt = dataset.GetProjection()
+        srs_str = "Inconnue"
+        if wkt:
+            srs = osr.SpatialReference()
+            srs.ImportFromWkt(wkt)
+            auth_name = srs.GetAuthorityName(None)
+            auth_code = srs.GetAuthorityCode(None)
+            if auth_name and auth_code:
+                srs_str = f"{auth_name}:{auth_code}"
+            else:
+                name = srs.GetAttrValue("PROJCS") or srs.GetAttrValue("GEOGCS")
+                srs_str = name if name else "Inconnue"
+
+        # --- Dimensions ---
+        width = dataset.RasterXSize
+        height = dataset.RasterYSize
+
+        # --- GeoTransform ---
+        gt = dataset.GetGeoTransform()
+        res_x = abs(gt[1])
+        res_y = abs(gt[5])
+        x_min = gt[0]
+        y_max = gt[3]
+        x_max = gt[0] + width * gt[1]
+        y_min = gt[3] + height * gt[5]
+
+        # --- Bands ---
+        band_count = dataset.RasterCount
+        bands = []
+        for i in range(1, band_count + 1):
+            band = dataset.GetRasterBand(i)
+            ci = band.GetColorInterpretation()
+            bands.append(gdal.GetColorInterpretationName(ci))
+
+        return {
+            "srs": srs_str,
+            "width": width,
+            "height": height,
+            "res_x": res_x,
+            "res_y": res_y,
+            "x_min": x_min,
+            "y_max": y_max,
+            "x_max": x_max,
+            "y_min": y_min,
+            "band_count": band_count,
+            "bands": bands,
+        }
+    finally:
+        dataset = None  # dereference / close GDAL dataset
+
+
 class GeoImporterApp:
 
     FILE_TYPES = ["MNT", "MNS", "Orthophoto", "Custom..."]
