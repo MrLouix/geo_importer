@@ -19,7 +19,6 @@ jobs:
         miniforge-variant: Miniforge3
         miniforge-version: latest
         activate-environment: test-env
-        environment-file: none
 
     - name: Install dependencies via conda
       shell: bash -l {0}
