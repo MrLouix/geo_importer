@@ -30,10 +30,142 @@ def validate_url(url: str) -> tuple:
     return (True, "")
 
 
+class GeoImporterApp:
+
+    FILE_TYPES = ["MNT", "MNS", "Orthophoto", "Custom..."]
+
+    def __init__(self, root):
+        import tkinter as tk
+        import tkinter.ttk as ttk
+        import tkinter.filedialog as filedialog
+        import tkinter.messagebox as messagebox
+
+        self.root = root
+        self._tk = tk
+        self._ttk = ttk
+        self._filedialog = filedialog
+        self._messagebox = messagebox
+
+        self._setup_window()
+        self._build_ui()
+
+    def _setup_window(self):
+        self.root.title("Géo-Importeur")
+        self.root.geometry("600x400")
+        self.root.resizable(False, False)
+
+    def _build_ui(self):
+        tk = self._tk
+        ttk = self._ttk
+        pad = {"padx": 8, "pady": 4}
+
+        main_frame = ttk.Frame(self.root, padding=10)
+        main_frame.grid(row=0, column=0, sticky="nsew")
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+
+        # Source file row
+        ttk.Label(main_frame, text="Fichier source :").grid(
+            row=0, column=0, sticky="w", **pad
+        )
+        self._source_entry = ttk.Entry(main_frame, state="readonly")
+        self._source_entry.grid(row=0, column=1, sticky="ew", **pad)
+        ttk.Button(
+            main_frame, text="Parcourir...", command=self._browse_source
+        ).grid(row=0, column=2, **pad)
+
+        # Target folder row
+        ttk.Label(main_frame, text="Dossier cible :").grid(
+            row=1, column=0, sticky="w", **pad
+        )
+        self._target_entry = ttk.Entry(main_frame, state="readonly")
+        self._target_entry.grid(row=1, column=1, sticky="ew", **pad)
+        ttk.Button(
+            main_frame, text="Parcourir...", command=self._browse_target
+        ).grid(row=1, column=2, **pad)
+
+        # URL row
+        ttk.Label(main_frame, text="URL Source :").grid(
+            row=2, column=0, sticky="w", **pad
+        )
+        self._url_entry = ttk.Entry(main_frame)
+        self._url_entry.grid(row=2, column=1, columnspan=2, sticky="ew", **pad)
+
+        # File type row
+        ttk.Label(main_frame, text="Type de fichier :").grid(
+            row=3, column=0, sticky="w", **pad
+        )
+        type_frame = ttk.Frame(main_frame)
+        type_frame.grid(row=3, column=1, columnspan=2, sticky="ew", **pad)
+        type_frame.columnconfigure(1, weight=1)
+
+        self._type_combo = ttk.Combobox(
+            type_frame,
+            values=self.FILE_TYPES,
+            state="readonly",
+            width=14,
+        )
+        self._type_combo.grid(row=0, column=0, padx=(0, 6))
+        self._type_combo.bind("<<ComboboxSelected>>", self._on_type_change)
+
+        self._custom_entry = ttk.Entry(type_frame, state="disabled")
+        self._custom_entry.grid(row=0, column=1, sticky="ew")
+
+        # Notes row
+        ttk.Label(main_frame, text="Notes :").grid(
+            row=4, column=0, sticky="nw", **pad
+        )
+        self._notes_text = tk.Text(main_frame, height=4, wrap="word")
+        self._notes_text.grid(row=4, column=1, columnspan=2, sticky="ew", **pad)
+
+        # Action buttons
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.grid(row=5, column=0, columnspan=3, pady=8)
+        ttk.Button(btn_frame, text="Importer", command=self._on_import).grid(
+            row=0, column=0, padx=12
+        )
+        ttk.Button(btn_frame, text="Annuler", command=self.root.destroy).grid(
+            row=0, column=1, padx=12
+        )
+
+    def _browse_source(self):
+        path = self._filedialog.askopenfilename(title="Sélectionner le fichier source")
+        if path:
+            self._source_entry.config(state="normal")
+            self._source_entry.delete(0, "end")
+            self._source_entry.insert(0, path)
+            self._source_entry.config(state="readonly")
+
+    def _browse_target(self):
+        path = self._filedialog.askdirectory(title="Sélectionner le dossier cible")
+        if path:
+            self._target_entry.config(state="normal")
+            self._target_entry.delete(0, "end")
+            self._target_entry.insert(0, path)
+            self._target_entry.config(state="readonly")
+
+    def _on_type_change(self, event=None):
+        if self._type_combo.get() == "Custom...":
+            self._custom_entry.config(state="normal")
+        else:
+            self._custom_entry.config(state="disabled")
+            self._custom_entry.delete(0, "end")
+
+    def get_file_type(self) -> str:
+        value = self._type_combo.get()
+        if value == "Custom...":
+            return self._custom_entry.get()
+        return value
+
+    def _on_import(self):
+        pass  # placeholder — wired in step 5
+
+
 def main():
     import tkinter as tk
-    from tkinter import ttk, filedialog, messagebox
     root = tk.Tk()
+    GeoImporterApp(root)
     root.mainloop()
 
 
