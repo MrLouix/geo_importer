@@ -1,8 +1,6 @@
 # PyInstaller spec file for GeoImporteur
 # Build with: pyinstaller --clean geo_importer.spec
 
-block_cipher = None
-
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -12,15 +10,12 @@ a = Analysis(
     hookspath=['hooks'],
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
 
 # GDAL data files and DLLs will be collected via hooks/hook-osgeo.py
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
 exe = EXE(
     pyz,

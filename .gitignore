@@ -71,3 +71,6 @@ Thumbs.db
 
 # Project specific
 *.exe
+
+# Claude files
+.claude/
