@@ -93,6 +93,64 @@ def extract_gdal_metadata(file_path: str) -> dict:
         dataset = None  # dereference / close GDAL dataset
 
 
+def copy_file(source_path: str, target_folder: str) -> str:
+    """Copy source_path into target_folder using shutil.copy2 (preserves metadata)."""
+    shutil.copy2(source_path, target_folder)
+    return os.path.join(target_folder, os.path.basename(source_path))
+
+
+def generate_readme(
+    copied_file_path: str,
+    metadata: dict,
+    file_type: str,
+    url: str,
+    notes: str,
+) -> str:
+    """Write a Markdown metadata file alongside the copied raster and return its path."""
+    basename = os.path.basename(copied_file_path)
+    target_dir = os.path.dirname(copied_file_path)
+    readme_path = os.path.join(target_dir, basename + ".readme.md")
+
+    bands_str = ", ".join(
+        f"Couche {i + 1} : {name}"
+        for i, name in enumerate(metadata["bands"])
+    )
+    date_str = datetime.datetime.now().strftime("%d/%m/%Y à %H:%M")
+
+    content = (
+        f"# Métadonnées - {basename}\n"
+        "\n"
+        "## Informations Générales\n"
+        f"* **Type de donnée :** {file_type}\n"
+        f"* **Date d'import :** {date_str}\n"
+        f"* **URL Source :** {url}\n"
+        f"* **Notes :** {notes}\n"
+        "\n"
+        "## Informations Techniques (Extraites via GDAL)\n"
+        f"* **Système de Projection (SRS) :** {metadata['srs']}\n"
+        f"* **Nombre de couches / bandes :** {metadata['band_count']}\n"
+        f"* **Type des couches :** {bands_str}\n"
+        "* **Emprise Spatiale (Bounding Box) :**\n"
+        f"  * XMin : {metadata['x_min']:.3f} | YMin : {metadata['y_min']:.3f}\n"
+        f"  * XMax : {metadata['x_max']:.3f} | YMax : {metadata['y_max']:.3f}\n"
+        f"* **Résolution :** {metadata['res_x']:.3f}m x {metadata['res_y']:.3f}m\n"
+        f"* **Dimensions de l'image :** {metadata['width']} x {metadata['height']} pixels\n"
+    )
+
+    with open(readme_path, "w", encoding="utf-8") as fh:
+        fh.write(content)
+
+    return readme_path
+
+
+def rollback(copied_file_path, readme_path) -> None:
+    """Delete copied file and/or readme if they exist (best-effort cleanup)."""
+    if copied_file_path is not None and os.path.exists(copied_file_path):
+        os.remove(copied_file_path)
+    if readme_path is not None and os.path.exists(readme_path):
+        os.remove(readme_path)
+
+
 class GeoImporterApp:
 
     FILE_TYPES = ["MNT", "MNS", "Orthophoto", "Custom..."]
