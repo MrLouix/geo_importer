@@ -18,18 +18,12 @@ a = Analysis(
     noarchive=False,
 )
 
-# Add GDAL data files and DLLs via hooks
-from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
-
-a.datas += collect_data_files('osgeo')
-a.binaries = collect_dynamic_libs('osgeo')
-
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
+    [],
     a.zipfiles,
     a.datas,
     [],
