@@ -9,7 +9,7 @@ a = Analysis(
     binaries=[],
     datas=[('geo_importer.ico', '.')],
     hiddenimports=['osgeo', 'osgeo.gdal', 'osgeo.osr', 'osgeo._gdal', 'osgeo._osr'],
-    hookspath=[],
+    hookspath=['hooks'],
     runtime_hooks=[],
     excludes=[],
     win_no_prefer_redirects=False,
@@ -18,9 +18,7 @@ a = Analysis(
     noarchive=False,
 )
 
-# GDAL will be collected automatically via PyInstaller hooks
-# No need for manual collect_data_files/collect_dynamic_libs
-# The hooks for GDAL in PyInstaller will handle osgeo data files and DLLs
+# GDAL data files and DLLs will be collected via hooks/hook-osgeo.py
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
