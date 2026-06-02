@@ -26,7 +26,7 @@ wheels/
 
 # PyInstaller
 *.manifest
-*.spec
+!geo_importer.spec
 
 # Installer logs
 pip-log.txt
